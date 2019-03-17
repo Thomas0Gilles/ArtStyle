@@ -29,34 +29,6 @@ def gram_matrix(x):
     gram = K.batch_dot(features, features, axes=[2,2])
     return gram
 
-def model(n):
-    inp = Input((None, None, 3))
-    
-#    x = Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(inp)
-#    x = Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(x)
-#    x = MaxPool2D(pool_size=(2, 2))(x)
-#    x = Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(x)
-#    x = Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(x)
-#    x = GlobalAveragePooling2D()(x)
-    
-    res  =ResNet50(include_top=False, pooling='avg', weights=None)
-    w_layers = _get_weighted_layers(res)
-    
-#    if n>0:
-#        for layer in res.layers:
-#            if layer.name in w_layers[-n:]:
-#                layer.trainable = True
-#            else:
-#                layer.trainable=False
-#    else:
-#        for layer in res.layers:
-#            layer.trainable=False
-    x = res(inp)
-    
-    out = Dense(units=25, activation='softmax')(x)
-    model = Model(inputs=inp, outputs=out)
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-    return model
 
 def resnet_trained(n_retrain_layers = 0):
     K.set_image_data_format('channels_last')
@@ -114,20 +86,7 @@ def resnet_try(n_retrain_layers = 0):
 
     
 def simple_gram(n=0):
-    #inp = Input((None, None, 3))
-    
-#    vgg = gram_layer(17)
-#    w_layers = _get_weighted_layers(vgg)
-#    if n>0:
-#        for layer in vgg.layers:
-#            if layer.name in w_layers[-n:]:
-#                layer.trainable = True
-#            else:
-#                layer.trainable=False
-#    else:
-#        for layer in vgg.layers:
-#            layer.trainable=False
-#    x = vgg.output
+
     
     
     #resnet :18 , 28 , 38 , 50 , 60 , 70 , 80 , 92  , 102 , 112 , 122 , 132 , 142 , 154 , 164 , 174 , 
@@ -142,26 +101,9 @@ def simple_gram(n=0):
     x = ReLU()(x)
     #x = Conv2D(filters=64, kernel_size=(1, 1), activation='relu', padding='same')(x)
     gram = Lambda(lambda x : gram_matrix(x), output_shape=((n, n)))(x)
-    #gram = Lambda(lambda x : select(x, 32), output_shape=((32, 32)))(gram)
-    #gram = Lambda(lambda x : tf.expand_dims(x, axis=-1), output_shape=((512, 512,1)))(gram)
-#    x = Conv2D(filters=2, kernel_size=(33, 33), strides=(2,2), activation='relu', padding='same')(gram) #256
-#    x = Conv2D(filters=4, kernel_size=(29, 29), strides=(2,2), activation='relu', padding='same')(x) #128
-#    x = Conv2D(filters=8, kernel_size=(25, 25), strides=(2,2), activation='relu', padding='same')(x) #64
-#    x = Conv2D(filters=16, kernel_size=(17, 17), strides=(2,2), activation='relu', padding='same')(x) #32
-#    x = Conv2D(filters=32, kernel_size=(9, 9), strides=(2,2), activation='relu', padding='same')(x) #16
-#    x = Conv2D(filters=64, kernel_size=(7, 7), strides=(2,2), activation='relu', padding='same')(x) #8
-#    x = Conv2D(filters=128, kernel_size=(5, 5), strides=(2,2), activation='relu', padding='same')(x) #4
-#    x = Conv2D(filters=256, kernel_size=(3, 3), strides=(2,2), activation='relu', padding='same')(x)
-    #x = Conv2D(filters=512, kernel_size=(5, 5), strides=(2,2), activation='relu', padding='same')(x)
+
     x = Lambda(lambda x : select(x, n), output_shape=(n*(n-1)//2,))(gram)
-    #x = Flatten()(gram)
-#    x=Dropout(0.5)(x)
-#    x = Dense(128, activation='relu')(x)
-#    x=Dropout(0.5)(x)
-    #x = Dense(256, activation='relu')(x)
-    #x=Dropout(0.5)(x)
-    #x = Dense(128, activation='relu')(x)
-    #x=Dropout(0.5)(x)
+
     x = Dense(128, activation='relu')(x)
     content = res.output
     #content = LayerNormalization()(content)
