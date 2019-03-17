@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import SGDClassifier
 
 from utils import load_samples, count_files, evaluate, imagenet_preprocess_input, _set_n_retrain, _get_weighted_layers, producer, getPaths, load_data, load_data_part, categorical_acc, load_data_frac
-from networks import simple_gram
+from networks import simple_gram, resnet_trained
 
 #Must modify the paths so that they point to your local wikipaintings files
 data = "wikiart/wikiart/"
@@ -36,20 +36,6 @@ target_size = (224, 224)
 
 X, y, classes = load_samples(10)
 X_test, y_test, classes_test = load_samples(10, data_test)
-
-
-def resnet_trained(n_retrain_layers = 0):
-    K.set_image_data_format('channels_last')
-    K.set_learning_phase(0)
-    base_model = ResNet50(include_top=False,input_shape=(224,224,3))
-    features = GlobalAveragePooling2D()(base_model.output)
-    res = Model(inputs=base_model.input, outputs=features)
-    res = _set_n_retrain(res,n_retrain_layers)
-    K.set_learning_phase(1)
-    out = Dense(units=25, activation='softmax')(res.output)
-    model = Model(inputs=res.input, outputs=out)
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
 
 #m = resnet_trained(20)
 m = simple_gram(20)
